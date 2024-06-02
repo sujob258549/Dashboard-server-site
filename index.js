@@ -28,6 +28,11 @@ async function run() {
 
         app.post('/user', async(req, res)=>{
             const data = req.body;
+            const query = {email: data.email}
+            const existiong = await userCalection.findOne(query);
+            if(existiong){
+                return res.send({message: 'user alrady existion', insertedId: null})
+            }
             const result = await userCalection.insertOne(data);
             res.send(result);
         })
