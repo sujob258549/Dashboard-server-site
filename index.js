@@ -24,6 +24,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         const userCalection = client.db('our-online-shop').collection('user')
+        const productsCalection = client.db('our-online-shop').collection('products')
 
 
         app.post('/user', async(req, res)=>{
@@ -35,6 +36,12 @@ async function run() {
             }
             const result = await userCalection.insertOne(data);
             res.send(result);
+        })
+
+        app.post('/priductinfo', async(req,res)=>{
+            const data = req.body;
+            const result = await productsCalection.insertOne(data);
+            res.send(result)
         })
         // Connect the client to the server	(optional starting in v4.7)
 
