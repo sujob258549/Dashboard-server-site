@@ -5,7 +5,13 @@ const port = process.env.PORT || 3000
 
 
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: [
+        'http://localhost:5173',
+        'https://online-shop12-7b3e8.web.app'
+    ],
+    credentials: true
+}))
 
 
 
@@ -46,6 +52,31 @@ async function run() {
             const result = await userCalection.findOne(query)
             res.send(result)
         })
+        // add delivary
+        app.patch('/adddalivari/:email', async (req, res) => {
+            const email = req.params.email;
+            if (!email || !req.body.dalivary) {
+                return res.status(400).json({ message: "Email and dalivary are required fields" });
+            }
+        
+            const filter = { email: email };  // Define the filter to find the correct document
+            const updateDoc = {
+                $set: {
+                    delevary: req.body.dalivary,
+                }
+            };
+        
+            try {
+                const result = await userCalection.updateOne(filter, updateDoc);
+                if (result.matchedCount === 0) {
+                    return res.status(404).json({ message: "User not found" });
+                }
+                res.json(result);
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: "Internal server error" });
+            }
+        });
         // update user
         app.patch('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -169,10 +200,22 @@ async function run() {
 
         app.get('/spicifyproductinfo/:email', async (req, res) => {
             const email = req?.params?.email;
-            console.log(email);
             let query = {}
             if (email) {
                 query = { delivarimanid: email }
+            }
+            const result = await productsCalection.find(query).toArray();
+            res.send(result)
+
+
+
+        })
+        // my product
+        app.get('/myproduct/:email', async (req, res) => {
+            const email = req?.params?.email;
+            let query = {}
+            if (email) {
+                query = { "productInfo.email": email }
             }
             const result = await productsCalection.find(query).toArray();
             res.send(result)
@@ -230,6 +273,33 @@ async function run() {
                     delivarimanid: data2.delivarimanid,
                     approximateDeliveryDate: data2.approximateDeliveryDate
 
+                }
+            }
+            const result = await productsCalection.updateOne(filter, updateDoc);
+            res.send(result)
+        })
+        // cancel status 
+        app.patch('/canceldalivary/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const data = req.body;
+            const updateDoc = {
+                $set: {
+                    'status.status': data.status,
+                    delivarimanid: ''
+                }
+            }
+            const result = await productsCalection.updateOne(filter, updateDoc);
+            res.send(result)
+        })
+        // status dalivared
+        app.patch('/fainaldalivary/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const data = req.body;
+            const updateDoc = {
+                $set: {
+                    'status.status': data.status,
                 }
             }
             const result = await productsCalection.updateOne(filter, updateDoc);
